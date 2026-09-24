@@ -7,10 +7,10 @@ from openai import OpenAI
 from dotenv import load_dotenv
 ## ---------------------LLM-------------#
 load_dotenv()
-HF_token=os.getenv("HF_TOKEN")
+# HF_token=os.getenv("HF_TOKEN")
 
 client=OpenAI(base_url="https://router.huggingface.co/v1",
-              api_key=HF_token)
+              api_key="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")
 
 ## ---------------------LLM-------------#
 st.set_page_config(layout="wide")

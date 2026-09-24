@@ -15,6 +15,7 @@ client=OpenAI(base_url="https://router.huggingface.co/v1",
 ## ---------------------LLM-------------#
 st.set_page_config(layout="wide")
 
+
 st.title("AI HEALTH ASSISTANT 🏋️")
 
 st.write("Personal Health Assistance and Diet Recommendation Agent")
@@ -53,7 +54,7 @@ col3.metric("TDEE",f"{tdee} Kcal")
 col4.metric("Calorie Traget",f"{calories} Kcal")
 
 tab1,tab2=st.tabs(['Diet Recommandation',"Health Assistance"])
-if tab1:
+with tab1:
     if st.button("Recommend Diet"):
         if client:
             with st.spinner("creating Diet..."):
@@ -67,139 +68,72 @@ if tab1:
                     context="\n\n".join([ doc.page_content for doc in docs])
                     prompt=f"""You are a helpful AI nutrition assistant.
 
-
-
 Use the following nutrition knowledge
-
 to create a simple one-day diet plan.
 
-
-
 NUTRITION KNOWLEDGE:
-
-
 
 {context}
 
 
-
-
-
 USER INFORMATION:
-
-
 
 Age: {age}
 
-
-
 Gender: {gender}
-
-
 
 Height: {height} cm
 
-
-
 Weight: {weight} kg
-
-
 
 Activity Level: {activity}
 
-
-
 aim: {aim}
-
-
 
 Diet Type: {diet_type}
 
-
-
 Food Allergy: {allergies}
-
-
 
 Estimated BMI: {bmi}
 
-
-
 Estimated BMR: {bmr} kcal/day
-
-
 
 Estimated TDEE: {tdee} kcal/day
 
-
-
 Estimated Daily Calorie Target:
-
 {calories} kcal/day
-
-
-
 
 
 Create the following:
 
-
-
-1\. Breakfast
-
-2\. Morning Snack
-
-3\. Lunch
-
-4\. Evening Snack
-
-5\. Dinner
-
-
-
+1. Breakfast
+2. Morning Snack
+3. Lunch
+4. Evening Snack
+5. Dinner
 
 
 For every meal provide:
 
-
-
-\- Food
-
-\- Portion
-
-\- Approximate calories
-
-\- Approximate protein
-
-
-
+- Food
+- Portion
+- Approximate calories
+- Approximate protein
 
 
 IMPORTANT RULES:
 
-
-
-\- Respect the user's diet type.
-
-\- Do not recommend foods containing
-
-&#x20; the stated allergy.
-
-\- Use the provided nutrition knowledge
-
-&#x20; when possible.
-
-\- Keep the plan simple and practical.
-
-\- Do not diagnose diseases.
-
-\- Do not prescribe medicines.
-
-\- Do not claim to cure diseases.
-
-\- This is general wellness information,
-
-&#x20; not medical advice.
+- Respect the user's diet type.
+- Do not recommend foods containing
+  the stated allergy.
+- Use the provided nutrition knowledge
+  when possible.
+- Keep the plan simple and practical.
+- Do not diagnose diseases.
+- Do not prescribe medicines.
+- Do not claim to cure diseases.
+- This is general wellness information,
+  not medical advice.
 """
                     response=client.chat.completions.create(
                             model="openai/gpt-oss-120b",
@@ -213,55 +147,52 @@ IMPORTANT RULES:
                     st.markdown(answer)       
                 except:
                     st.error("RAG is not connected")
-if tab2:
+with tab2:
     question=st.text_area("Ask About Health",
                  placeholder="eg:Good Souce of vegeterian protien")
     if st.button("Ask AI"):
-        db=load_rag()
-        docs=db.similarity_search(question,3)
-        context="\n\n".join([doc.page_content for doc in docs])
-        prompt=f"""You are an AI health and nutrition
+        with st.spinner("Thinking.."):
+            db=load_rag()
+            docs=db.similarity_search(question,3)
+            context="\n\n".join([doc.page_content for doc in docs])
+            prompt=f"""You are an AI health and nutrition
+assistant.
 
-                    assistant.
+Use the following knowledge to answer
+the user's question.
 
-                    Use the following knowledge to answer
+NUTRITION KNOWLEDGE:
 
-                    the user's question.
+{context}
 
-                    NUTRITION KNOWLEDGE:
 
-                    {context}
+USER QUESTION:
 
-                    USER QUESTION:
+{question}
 
-                    {question}
 
-                    INSTRUCTIONS:
+INSTRUCTIONS:
 
-                    \- Answer clearly.
+- Answer clearly.
+- Keep the explanation beginner-friendly.
+- Use the provided knowledge when possible.
+- Do not invent medical facts.
+- Do not diagnose diseases.
+- Do not prescribe medicines.
+- Do not claim to cure diseases.
+- If the question concerns a serious
+  medical problem, recommend consulting
+  a qualified healthcare professional.
 
-                    \- Keep the explanation beginner-friendly.
-                    \- Use the provided knowledge when possible.
-                    \- Do not invent medical facts.
-                    \- Do not diagnose diseases.
-
-                    \- Do not prescribe medicines.
-                    \- Do not claim to cure diseases.
-
-                    \- If the question concerns a serious
-                    &#x20; medical problem, recommend consulting
-
-                    &#x20; a qualified healthcare professional.
-                    This application provides general health
-
-                    and nutrition information for educational
-
-                    and wellness purposes.
-                    """
-        response=client.chat.completions.create(model="openai/gpt-oss-120b",
-                               messages=[{
-                                   "role":"user",
-                                   "content":prompt
-                               }])
-        answer=response.choices[0].message.content
-        st.markdown(answer)
+This application provides general health
+and nutrition information for educational
+and wellness purposes.
+                        """
+            response=client.chat.completions.create(model="openai/gpt-oss-120b",
+                                messages=[{
+                                    "role":"user",
+                                    "content":prompt
+                                }])
+            answer=response.choices[0].message.content
+            st.markdown(answer)
+st.warning("Knowledge-based health information tools serve as guides, but they cannot replace a physical examination or professional medical diagnosis")
